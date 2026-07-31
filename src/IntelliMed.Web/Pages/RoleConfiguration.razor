@@ -1,0 +1,379 @@
+@page "/admin/roles"
+@layout MainLayout
+@using IntelliMed.Core.DTOs
+@using IntelliMed.Web.Services
+@inject IAdminService AdminService
+@inject NavigationManager Navigation
+
+<PageTitle>Role Configuration - IntelliMed</PageTitle>
+
+<h4 class="mb-4">Role Configuration</h4>
+
+@* =========================================================================
+   HEADER CARD
+   ========================================================================= *@
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+            <span class="d-flex align-items-center">
+                <i class="bi bi-shield-lock me-2"></i> Configure which pages each role can access
+            </span>
+            <button type="button" class="btn btn-outline-primary" @onclick="NavigateBackToUsers">
+                <i class="bi bi-arrow-left me-1"></i> Back to Users
+            </button>
+        </div>
+    </div>
+</div>
+
+@* =========================================================================
+   LOADING STATE
+   ========================================================================= *@
+@if (_isLoading)
+{
+    <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (_error != null)
+{
+    <div class="alert alert-danger mb-4">@_error</div>
+}
+else
+{
+    @* =========================================================================
+       ROLE SELECTOR + SEARCH + SAVE
+       ========================================================================= *@
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Select Role</label>
+                    <select class="form-select" value="@_selectedRole"
+                            @onchange="OnRoleChanged">
+                        <option value="">-- Choose a role --</option>
+                        @foreach (var role in _roles)
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Search pages...</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search..."
+                               value="@_searchText"
+                               @oninput="OnSearchChanged" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-primary w-100"
+                            @onclick="SavePermissionsAsync"
+                            disabled="@(_selectedRole == null)">
+                        <i class="bi bi-save me-1"></i> Save Permissions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       NO ROLE SELECTED
+       ========================================================================= *@
+    @if (_selectedRole == null)
+    {
+        <div class="card text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-hand-index-thumb fs-1 text-muted mb-3 d-block"></i>
+                <h5>Select a role above to configure its page access</h5>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* =========================================================================
+           PAGE CHECKBOXES GROUPED BY CATEGORY
+           ========================================================================= *@
+        @foreach (var category in _categories)
+        {
+            var categoryPages = _filteredPages.Where(p => p.Category == category).ToList();
+            if (categoryPages.Count == 0) continue;
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="d-flex align-items-center mb-3">
+                        <i class="bi @GetCategoryIcon(category) me-2"></i>
+                        @category
+                        <span class="badge bg-secondary ms-2">@categoryPages.Count pages</span>
+                    </h6>
+                    <hr />
+
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var page in categoryPages)
+                        {
+                            var pageName = page.PageName;
+                            var pageDesc = page.Description;
+                            var pageKey = page.PageKey;
+                            <div class="card border-0 bg-light p-2" style="min-width: 220px; flex: 1 1 220px;">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input"
+                                           id="chk_@pageKey"
+                                           checked="@_selectedPageKeys.Contains(pageKey)"
+                                           @onchange="_pageCallbacks[pageKey]" />
+                                    <label class="form-check-label" for="chk_@pageKey">
+                                        @pageName
+                                        @if (!string.IsNullOrWhiteSpace(pageDesc))
+                                        {
+                                            <i class="bi bi-info-circle ms-1 text-muted"
+                                               title="@pageDesc"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="top"></i>
+                                        }
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* =========================================================================
+           SUMMARY FOOTER
+           ========================================================================= *@
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span>
+                        <i class="bi bi-check-circle-fill text-success me-1"></i> @_selectedPageKeys.Count of @_allPages.Count pages selected for <strong>@_selectedRole</strong>
+                    </span>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary btn-sm me-2"
+                                @onclick="SelectAllPages">
+                            Select All
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                @onclick="DeselectAllPages">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@* =========================================================================
+   TOAST NOTIFICATION
+   ========================================================================= *@
+@if (_toastMessage != null)
+{
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+        <div class="toast show align-items-center @(_toastIsError ? "text-bg-danger" : "text-bg-success") border-0"
+             role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @_toastMessage
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        @onclick="DismissToast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _isLoading = true;
+    private string? _error;
+
+    // Available roles (from Identity)
+    private List<string> _roles = new();
+
+    // All page definitions from the API
+    private List<PageDefinitionDto> _allPages = new();
+
+    // Filtered pages (after search)
+    private List<PageDefinitionDto> _filteredPages = new();
+
+    // Distinct categories from all pages
+    private List<string> _categories = new();
+
+    // Currently selected role
+    private string? _selectedRole;
+
+    // Currently selected page keys for the selected role
+    private HashSet<string> _selectedPageKeys = new(StringComparer.OrdinalIgnoreCase);
+
+    // Search text
+    private string _searchText = string.Empty;
+
+    // Pre-built callbacks for each page (avoids lambda in attributes)
+    private Dictionary<string, EventCallback<ChangeEventArgs>> _pageCallbacks = new();
+
+    // Toast state
+    private string? _toastMessage;
+    private bool _toastIsError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load roles
+            var roleDtos = await AdminService.GetRolesAsync();
+            if (roleDtos != null)
+            {
+                _roles = roleDtos.Select(r => r.Name).OrderBy(n => n).ToList();
+            }
+
+            // Load page definitions
+            _allPages = await AdminService.GetPageDefinitionsAsync() ?? new();
+            _categories = _allPages.Select(p => p.Category).Distinct().OrderBy(c => c).ToList();
+            BuildPageCallbacks();
+            ApplySearch();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load data: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void BuildPageCallbacks()
+    {
+        _pageCallbacks.Clear();
+        foreach (var page in _allPages)
+        {
+            var pageKey = page.PageKey;
+            _pageCallbacks[pageKey] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => TogglePage(pageKey, e));
+        }
+    }
+
+    private async Task OnRoleChanged(ChangeEventArgs e)
+    {
+        var roleName = e.Value?.ToString() ?? string.Empty;
+        _selectedRole = roleName;
+        _selectedPageKeys.Clear();
+
+        if (!string.IsNullOrEmpty(roleName))
+        {
+            try
+            {
+                var perms = await AdminService.GetRolePermissionsAsync(roleName);
+                if (perms?.PageKeys != null)
+                {
+                    foreach (var pk in perms.PageKeys)
+                    {
+                        _selectedPageKeys.Add(pk);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowToast($"Failed to load permissions for {roleName}: {ex.Message}", true);
+            }
+        }
+    }
+
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        _searchText = e.Value?.ToString() ?? string.Empty;
+        ApplySearch();
+    }
+
+    private void ApplySearch()
+    {
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            _filteredPages = _allPages.ToList();
+        }
+        else
+        {
+            var term = _searchText.Trim();
+            _filteredPages = _allPages
+                .Where(p => p.PageName.Contains(term, StringComparison.OrdinalIgnoreCase)
+                         || p.PageKey.Contains(term, StringComparison.OrdinalIgnoreCase)
+                         || p.Category.Contains(term, StringComparison.OrdinalIgnoreCase)
+                         || (p.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
+    }
+
+    private void TogglePage(string pageKey, ChangeEventArgs e)
+    {
+        var isChecked = (bool)(e.Value ?? false);
+        if (isChecked)
+            _selectedPageKeys.Add(pageKey);
+        else
+            _selectedPageKeys.Remove(pageKey);
+    }
+
+    private void SelectAllPages()
+    {
+        foreach (var page in _allPages)
+            _selectedPageKeys.Add(page.PageKey);
+    }
+
+    private void DeselectAllPages()
+    {
+        _selectedPageKeys.Clear();
+    }
+
+    private async Task SavePermissionsAsync()
+    {
+        if (string.IsNullOrEmpty(_selectedRole)) return;
+
+        try
+        {
+            var request = new SaveRolePermissionsRequest
+            {
+                PageKeys = _selectedPageKeys.ToList()
+            };
+
+            var result = await AdminService.SaveRolePermissionsAsync(_selectedRole, request);
+            if (result?.Success == true)
+            {
+                ShowToast($"Permissions saved for '{_selectedRole}' ({_selectedPageKeys.Count} pages).");
+            }
+            else
+            {
+                ShowToast(result?.Message ?? "Failed to save permissions.", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"Error saving permissions: {ex.Message}", true);
+        }
+    }
+
+    private static string GetCategoryIcon(string category) => category switch
+    {
+        "Clinical" => "bi-hospital",
+        "Financial" => "bi-cash-coin",
+        "Admin" => "bi-shield-lock",
+        "Practice" => "bi-building",
+        "Reports" => "bi-graph-up",
+        _ => "bi-globe"
+    };
+
+    private void ShowToast(string message, bool isError = false)
+    {
+        _toastMessage = message;
+        _toastIsError = isError;
+        StateHasChanged();
+    }
+
+    private void DismissToast()
+    {
+        _toastMessage = null;
+    }
+
+    private void NavigateBackToUsers()
+    {
+        Navigation.NavigateTo("/admin/users");
+    }
+}

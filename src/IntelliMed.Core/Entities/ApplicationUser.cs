@@ -1,0 +1,53 @@
+using Microsoft.AspNetCore.Identity;
+
+namespace IntelliMed.Core.Entities;
+
+/// <summary>
+/// Application user extending ASP.NET Identity's IdentityUser.
+/// </summary>
+public class ApplicationUser : IdentityUser
+{
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? LastLoginAt { get; set; }
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>When the most recent invite email was sent. Null means never invited — used to distinguish "Invite Sent" from "Active" in User Management until the user's first login.</summary>
+    public DateTime? InviteSentAt { get; set; }
+
+    // Profile — personal/professional info the user can edit about themselves.
+    // RegistrationNumber is only meaningful for doctors, but kept optional for any user.
+    public string? Title { get; set; }
+    public string? MiddleName { get; set; }
+    public string? MobilePhone { get; set; }
+    public string? BusinessHoursPhone { get; set; }
+    public string? Fax { get; set; }
+    public string? Qualifications { get; set; }
+    public string? Specialty { get; set; }
+    public string? RegistrationNumber { get; set; }
+    public string? Note { get; set; }
+    public bool InternalProvider { get; set; }
+
+    /// <summary>Overrides the clinic-wide default appointment calendar slot granularity for this user. Null falls back to ClinicSettings.MinimumTimeslotMinutes.</summary>
+    public int? DefaultAppointmentTimeslotMinutes { get; set; }
+
+    public int? GroupId { get; set; }
+    public ProviderGroup? Group { get; set; }
+
+    public string? ResidentialAddress { get; set; }
+    public string? ResidentialCity { get; set; }
+    public string? ResidentialPostalCode { get; set; }
+    public string? ResidentialState { get; set; }
+
+    public bool PostalSameAsResidential { get; set; } = true;
+    public string? PostalAddress { get; set; }
+    public string? PostalCity { get; set; }
+    public string? PostalPostalCode { get; set; }
+    public string? PostalState { get; set; }
+
+    /// <summary>
+    /// Gets the full name of the user.
+    /// </summary>
+    public string FullName => $"{FirstName} {LastName}".Trim();
+}

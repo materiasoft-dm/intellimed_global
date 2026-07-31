@@ -1,0 +1,448 @@
+html, body {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 0.875rem;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --imed-primary: #4272d7;
+    --imed-primary-dark: #2f5bc4;
+    --imed-primary-light: #eaf0fc;
+    --imed-accent: #085041;
+    --imed-neutral-900: #1a1a1a;
+    --imed-neutral-700: #495057;
+    --imed-neutral-500: #6c757d;
+    --imed-neutral-300: #dee2e6;
+    --imed-neutral-100: #f5f7fa;
+    --imed-danger: #b02a37;
+    --imed-success: #146c43;
+
+    --imed-sidebar-bg: #1c2333;
+    --imed-sidebar-text: rgba(255, 255, 255, 0.85);
+    --imed-sidebar-text-active: #ffffff;
+    --imed-card-radius: 10px;
+    --imed-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+h1:focus {
+    outline: none;
+}
+
+a, .btn-link {
+    color: var(--imed-primary);
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: var(--imed-primary);
+    border-color: var(--imed-primary-dark);
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred."
+    }
+
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    inset: 20vh 0 auto 0;
+    margin: 0 auto 0 auto;
+}
+
+    .loading-progress circle {
+        fill: none;
+        stroke: #e0e0e0;
+        stroke-width: 0.6rem;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+    }
+
+        .loading-progress circle:last-child {
+            stroke: var(--imed-primary);
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+
+    .loading-progress-text:after {
+        content: var(--blazor-load-percentage-text, "Loading");
+    }
+
+code {
+    color: #c02d76;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* Global card/table restyle so every page (Clients, RoleConfiguration, UserManagement, etc.)
+   picks up the softer rounded/shadowed look with no per-page markup changes. */
+.card {
+    border-radius: var(--imed-card-radius);
+    box-shadow: var(--imed-card-shadow);
+    border: none;
+}
+
+.table thead {
+    background-color: var(--imed-neutral-100);
+}
+
+.table-hover > tbody > tr:hover > * {
+    background-color: var(--imed-primary-light);
+}
+
+/* Soft-tinted icon badges used on dashboard stat tiles / quick-link cards */
+.stat-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.stat-icon-badge--blue { background: #eaf0fc; color: #4272d7; }
+.stat-icon-badge--green { background: #e7f7ef; color: #146c43; }
+.stat-icon-badge--amber { background: #fdf1e0; color: #b5720a; }
+.stat-icon-badge--purple { background: #f1ebfb; color: #6f42c1; }
+
+.stat-tile-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--imed-neutral-900);
+}
+
+/* App shell: full-width top bar, sidebar + content row below it */
+.mdi-layout {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.mdi-menu-bar {
+    background-color: #fff !important;
+    color: var(--imed-neutral-900) !important;
+    border-bottom: 1px solid var(--imed-neutral-300);
+    flex-shrink: 0;
+}
+
+.mdi-menu-bar .navbar-brand,
+.mdi-menu-bar .navbar-text {
+    color: var(--imed-neutral-900) !important;
+}
+
+.mdi-menu-bar .btn-primary {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--imed-neutral-700) !important;
+}
+
+.mdi-menu-bar .btn-primary:hover {
+    background-color: var(--imed-neutral-100);
+    color: var(--imed-primary) !important;
+}
+
+.mdi-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.mdi-main-content {
+    background-color: var(--imed-neutral-100);
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Sidebar: docked flex column on desktop, slide-over overlay below the lg breakpoint */
+.mdi-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--imed-sidebar-bg);
+    border-right: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    transition: width 0.2s ease, border-color 0.2s ease;
+}
+
+@media (min-width: 992px) {
+    /* Collapsed = icon rail: nav icons stay visible and clickable, labels/section headers hide */
+    .mdi-sidebar.mdi-sidebar-collapsed {
+        width: 68px;
+        overflow: hidden;
+    }
+
+    .mdi-sidebar.mdi-sidebar-collapsed .mdi-sidebar-header {
+        justify-content: center;
+        padding: 16px 0;
+    }
+
+    .mdi-sidebar.mdi-sidebar-collapsed .mdi-sidebar-header h6,
+    .mdi-sidebar.mdi-sidebar-collapsed .mdi-nav-label,
+    .mdi-sidebar.mdi-sidebar-collapsed small.text-muted {
+        display: none;
+    }
+
+    .mdi-sidebar.mdi-sidebar-collapsed .mdi-nav-link {
+        justify-content: center;
+        padding: 10px 0 !important;
+    }
+
+    .mdi-sidebar.mdi-sidebar-collapsed .mdi-nav-link i {
+        margin-right: 0 !important;
+        font-size: 1.1rem;
+    }
+}
+
+.mdi-sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    min-height: 56px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mdi-logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: var(--imed-primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.mdi-sidebar-header h6 {
+    color: var(--imed-sidebar-text-active);
+    margin: 0;
+}
+
+.mdi-sidebar .text-muted {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.mdi-sidebar hr {
+    border-color: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+}
+
+/* Fixed-width label used so filter-panel fields line up with the label to the left of the input */
+.filter-label {
+    width: 92px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+/* Narrower label variant for two-column filter rows (e.g. Family/Org + First side by side) */
+.filter-label-sm {
+    width: 68px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Clickable header that toggles a collapsible filter-panel section */
+.filter-section-header {
+    cursor: pointer;
+    padding: 4px 0;
+    user-select: none;
+}
+
+.filter-section-header:hover {
+    color: var(--imed-primary);
+}
+
+/* Mobile card-list rows (Client Search etc.) — tap target with a subtle selected/hover state */
+.client-mobile-card {
+    cursor: pointer;
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.client-mobile-card:hover {
+    box-shadow: var(--imed-card-shadow);
+}
+
+/* Client Search filter panel: stretches to match the results column's height on desktop/tablet
+   (the parent .row is a flex container with the default align-items: stretch) so the Find/Clear
+   footer stays pinned to the bottom of the panel instead of trailing after the filter fields. */
+@media (min-width: 768px) {
+    .filter-panel-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .filter-panel-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .filter-panel-footer {
+        flex-shrink: 0;
+    }
+}
+
+/* Edit/Add Client page: labels sit to the left of their textbox/select/textarea on desktop and
+   tablet, instead of stacked above it. Targets every "<label class=form-label> + <input/select>"
+   pair on the page generically (via :has), so it applies uniformly across all field sections and
+   the bottom tab-strip forms without needing a class on each individual field wrapper. */
+@media (min-width: 768px) {
+    .client-edit-page div:has(> label.form-label + .form-control),
+    .client-edit-page div:has(> label.form-label + .form-select) {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .client-edit-page label.form-label {
+        flex-shrink: 0;
+        /* Narrow columns (e.g. col-3 Postcode/State) can't spare a fixed 110px for the label
+           without squeezing the input to nothing, so cap it at a share of the wrapper's width
+           instead of a flat pixel value. */
+        width: min(110px, 45%);
+        padding-top: 0.25rem;
+        margin-bottom: 0 !important;
+    }
+
+    .client-edit-page .form-control,
+    .client-edit-page .form-select {
+        flex: 1 1 auto;
+        min-width: 40px;
+    }
+}
+
+.mdi-nav-link {
+    color: var(--imed-sidebar-text) !important;
+    padding: 10px 24px !important;
+    display: flex !important;
+    align-items: center;
+    border-radius: 0;
+    transition: background-color 0.15s ease;
+}
+
+.mdi-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--imed-sidebar-text-active) !important;
+}
+
+.mdi-nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--imed-sidebar-text-active) !important;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--imed-primary);
+}
+
+.mdi-overlay-backdrop {
+    display: none;
+}
+
+@media (max-width: 991.98px) {
+    .mdi-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        max-width: 85vw;
+        z-index: 1201;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .mdi-sidebar.mdi-sidebar-open {
+        transform: translateX(0);
+    }
+
+    .mdi-overlay-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.32);
+        z-index: 1200;
+        animation: mdi-fade-in 0.2s ease;
+    }
+}
+
+@keyframes mdi-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

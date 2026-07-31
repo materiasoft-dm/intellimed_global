@@ -1,0 +1,152 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace IntelliMed.Core.DTOs;
+
+public class LoginRequest
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    public string Password { get; set; } = string.Empty;
+
+    public bool RememberMe { get; set; }
+}
+
+public class LoginResponse
+{
+    public bool Success { get; set; }
+    public string? Token { get; set; }
+    public string? Email { get; set; }
+    public string? FullName { get; set; }
+    public IList<string>? Roles { get; set; }
+    public string? ErrorMessage { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+}
+
+public class LogoutResponse
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+}
+
+public class CurrentUserResponse
+{
+    public bool IsAuthenticated { get; set; }
+    public string? Email { get; set; }
+    public string? FullName { get; set; }
+    public IList<string>? Roles { get; set; }
+}
+
+/// <summary>
+/// The current user's own editable profile — shown on the Profile Settings page.
+/// </summary>
+public class UserProfileDto
+{
+    public string Email { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public IList<string> Roles { get; set; } = new List<string>();
+
+    public string? Title { get; set; }
+    public string? MiddleName { get; set; }
+    public string? MobilePhone { get; set; }
+    public string? BusinessHoursPhone { get; set; }
+    public string? Fax { get; set; }
+    public string? Qualifications { get; set; }
+    public string? Specialty { get; set; }
+    public string? RegistrationNumber { get; set; }
+    public string? Note { get; set; }
+    public bool InternalProvider { get; set; }
+    public int? DefaultAppointmentTimeslotMinutes { get; set; }
+
+    public int? GroupId { get; set; }
+    public string? GroupName { get; set; }
+
+    public string? ResidentialAddress { get; set; }
+    public string? ResidentialCity { get; set; }
+    public string? ResidentialPostalCode { get; set; }
+    public string? ResidentialState { get; set; }
+
+    public bool PostalSameAsResidential { get; set; } = true;
+    public string? PostalAddress { get; set; }
+    public string? PostalCity { get; set; }
+    public string? PostalPostalCode { get; set; }
+    public string? PostalState { get; set; }
+}
+
+/// <summary>
+/// Request to update the current user's own profile. Email/roles are not editable here.
+/// </summary>
+public class UpdateProfileRequest
+{
+    [Required]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required]
+    public string LastName { get; set; } = string.Empty;
+
+    public string? Title { get; set; }
+    public string? MiddleName { get; set; }
+    public string? MobilePhone { get; set; }
+    public string? BusinessHoursPhone { get; set; }
+    public string? Fax { get; set; }
+    public string? Qualifications { get; set; }
+    public string? Specialty { get; set; }
+    public string? RegistrationNumber { get; set; }
+    public string? Note { get; set; }
+    public bool InternalProvider { get; set; }
+
+    /// <summary>Overrides the clinic-wide default appointment calendar slot granularity. Null (blank) falls back to the clinic setting.</summary>
+    [Range(1, 240)]
+    public int? DefaultAppointmentTimeslotMinutes { get; set; }
+
+    public int? GroupId { get; set; }
+
+    public string? ResidentialAddress { get; set; }
+    public string? ResidentialCity { get; set; }
+    public string? ResidentialPostalCode { get; set; }
+    public string? ResidentialState { get; set; }
+
+    public bool PostalSameAsResidential { get; set; } = true;
+    public string? PostalAddress { get; set; }
+    public string? PostalCity { get; set; }
+    public string? PostalPostalCode { get; set; }
+    public string? PostalState { get; set; }
+}
+/// <summary>One day's working hours in the current user's self-service weekly schedule.</summary>
+public class ProviderScheduleDayDto
+{
+    public DayOfWeek DayOfWeek { get; set; }
+    public bool IsActive { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+}
+
+/// <summary>Bulk-replaces the current user's whole weekly schedule (Profile Settings &gt; Weekly Schedule).</summary>
+public class SetProviderScheduleRequest
+{
+    public List<ProviderScheduleDayDto> Days { get; set; } = new();
+}
+
+public class ForgotPasswordRequest
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
+
+/// <summary>Completes an invite or forgot-password flow using the token emailed to the user.</summary>
+public class SetPasswordRequest
+{
+    [Required]
+    public string UserId { get; set; } = string.Empty;
+
+    [Required]
+    public string Token { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
+    public string NewPassword { get; set; } = string.Empty;
+}

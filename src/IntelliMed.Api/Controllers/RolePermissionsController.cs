@@ -1,0 +1,223 @@
+using IntelliMed.Core.DTOs;
+using IntelliMed.Core.Entities;
+using IntelliMed.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace IntelliMed.Api.Controllers;
+
+/// <summary>
+/// Controller for managing dynamic role-to-page permissions.
+/// SuperAdmin and Admin can configure which pages each role can access.
+/// </summary>
+[ApiController]
+[Route("api/admin/role-permissions")]
+public class RolePermissionsController : ControllerBase
+{
+    private readonly AppDbContext _context;
+    private readonly ILogger<RolePermissionsController> _logger;
+
+    public RolePermissionsController(AppDbContext context, ILogger<RolePermissionsController> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    // =========================================================================
+    // PAGE DEFINITIONS — the catalog of all available pages
+    // =========================================================================
+
+    /// <summary>
+    /// Get all available page definitions (the catalog of pages that can be assigned to roles).
+    /// </summary>
+    [HttpGet("page-definitions")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    [ProducesResponseType(typeof(IEnumerable<PageDefinitionDto>), StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<PageDefinitionDto>> GetPageDefinitions()
+    {
+        return Ok(GetPageDefinitionsList());
+    }
+
+    // =========================================================================
+    // ROLE PERMISSIONS — CRUD for which pages a role can access
+    // =========================================================================
+
+    /// <summary>
+    /// Get all role permissions (all role→page mappings).
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    [ProducesResponseType(typeof(IEnumerable<RolePermissionsDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<RolePermissionsDto>>> GetAllRolePermissions()
+    {
+        var permissions = await _context.RolePermissions.ToListAsync();
+
+        var grouped = permissions
+            .GroupBy(p => p.RoleName)
+            .Select(g => new RolePermissionsDto
+            {
+                RoleName = g.Key,
+                PageKeys = g.Select(p => p.PageKey).ToList()
+            });
+
+        return Ok(grouped);
+    }
+
+    /// <summary>
+    /// Get permissions for a specific role.
+    /// </summary>
+    [HttpGet("{roleName}")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    [ProducesResponseType(typeof(RolePermissionsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RolePermissionsDto>> GetRolePermissions(string roleName)
+    {
+        var pageKeys = await _context.RolePermissions
+            .Where(p => p.RoleName == roleName)
+            .Select(p => p.PageKey)
+            .ToListAsync();
+
+        return Ok(new RolePermissionsDto
+        {
+            RoleName = roleName,
+            PageKeys = pageKeys
+        });
+    }
+
+    /// <summary>
+    /// Save (replace) all page permissions for a role.
+    /// </summary>
+    [HttpPut("{roleName}")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    [ProducesResponseType(typeof(UserManagementResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserManagementResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserManagementResponse>> SaveRolePermissions(
+        string roleName, [FromBody] SaveRolePermissionsRequest request)
+    {
+        // Remove existing permissions for this role
+        var existing = await _context.RolePermissions
+            .Where(p => p.RoleName == roleName)
+            .ToListAsync();
+
+        _context.RolePermissions.RemoveRange(existing);
+
+        // Add new permissions
+        var newPermissions = request.PageKeys.Select(pk => new RolePermission
+        {
+            RoleName = roleName,
+            PageKey = pk,
+            Category = GetCategoryForPage(pk)
+        }).ToList();
+
+        await _context.RolePermissions.AddRangeAsync(newPermissions);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Permissions updated for role '{Role}': {Pages}",
+            roleName, string.Join(", ", request.PageKeys));
+
+        return Ok(new UserManagementResponse
+        {
+            Success = true,
+            Message = $"Permissions saved for role '{roleName}'."
+        });
+    }
+
+    /// <summary>
+    /// Get the pages accessible by the current user (based on their roles).
+    /// Used by the frontend to determine which nav items to show.
+    /// </summary>
+    [HttpGet("my-pages")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<string>>> GetMyAccessiblePages()
+    {
+        var roles = User.Claims
+            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        // SuperAdmin always gets all pages
+        if (roles.Contains("SuperAdmin"))
+        {
+            var allPages = GetPageDefinitionsList();
+            return Ok(allPages.Select(p => p.PageKey).ToList());
+        }
+
+        var pageKeys = await _context.RolePermissions
+            .Where(p => roles.Contains(p.RoleName))
+            .Select(p => p.PageKey)
+            .Distinct()
+            .ToListAsync();
+
+        return Ok(pageKeys);
+    }
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+
+    private static string GetCategoryForPage(string pageKey)
+    {
+        return pageKey switch
+        {
+            "clinic-settings" or "clinic-manager" => "Practice",
+            string p when p.StartsWith("clients") || p.StartsWith("appointments") || p.StartsWith("practitioners") => "Clinical",
+            string p when p.StartsWith("invoices") || p.StartsWith("payments") || p == "fee-schedules" => "Financial",
+            string p when p.StartsWith("admin") => "Admin",
+            string p when p.StartsWith("reports") => "Reports",
+            _ => "Other"
+        };
+    }
+
+    /// <summary>
+    /// Returns the page definitions list directly (not wrapped in ActionResult).
+    /// Used internally by GetMyAccessiblePages to avoid ActionResult.Value null issue.
+    /// </summary>
+    private static List<PageDefinitionDto> GetPageDefinitionsList()
+    {
+        return new List<PageDefinitionDto>
+        {
+            // Clinical
+            new() { PageKey = "clients", PageName = "Client Records", Category = "Clinical", Description = "View and manage client records" },
+            new() { PageKey = "clients/create", PageName = "Add Client", Category = "Clinical", Description = "Create new client records" },
+            new() { PageKey = "clients/edit", PageName = "Edit Client", Category = "Clinical", Description = "Edit existing client records" },
+            new() { PageKey = "clients/delete", PageName = "Delete Client", Category = "Clinical", Description = "Remove client records" },
+            new() { PageKey = "appointments", PageName = "Appointments", Category = "Clinical", Description = "View appointment schedule" },
+            new() { PageKey = "appointments/create", PageName = "New Appointment", Category = "Clinical", Description = "Schedule new appointments" },
+            new() { PageKey = "appointments/edit", PageName = "Edit Appointment", Category = "Clinical", Description = "Modify existing appointments" },
+            new() { PageKey = "appointments/delete", PageName = "Delete Appointment", Category = "Clinical", Description = "Cancel appointments" },
+            new() { PageKey = "appointments/waiting-room", PageName = "Waiting Room", Category = "Clinical", Description = "View and manage the waiting room" },
+            new() { PageKey = "practitioners", PageName = "Practitioners", Category = "Clinical", Description = "View practitioner directory" },
+            new() { PageKey = "practitioners/create", PageName = "Add Practitioner", Category = "Clinical", Description = "Register new practitioners" },
+            new() { PageKey = "practitioners/edit", PageName = "Edit Practitioner", Category = "Clinical", Description = "Update practitioner details" },
+
+            // Financial
+            new() { PageKey = "invoices", PageName = "Invoices", Category = "Financial", Description = "View invoices" },
+            new() { PageKey = "invoices/create", PageName = "New Invoice", Category = "Financial", Description = "Create new invoices" },
+            new() { PageKey = "invoices/edit", PageName = "Edit Invoice", Category = "Financial", Description = "Modify existing invoices" },
+            new() { PageKey = "invoices/delete", PageName = "Delete Invoice", Category = "Financial", Description = "Remove invoices" },
+            new() { PageKey = "payments", PageName = "Payments", Category = "Financial", Description = "View and process payments" },
+            new() { PageKey = "fee-schedules", PageName = "Fee Schedules", Category = "Financial", Description = "Manage the billing item catalog and price lists" },
+
+            // Admin
+            new() { PageKey = "admin/users", PageName = "User Management", Category = "Admin", Description = "Manage system users" },
+            new() { PageKey = "admin/roles", PageName = "Role Configuration", Category = "Admin", Description = "Configure role permissions" },
+            new() { PageKey = "admin/audit", PageName = "Audit Log", Category = "Admin", Description = "View system audit trail" },
+            new() { PageKey = "admin/settings", PageName = "System Settings", Category = "Admin", Description = "Configure system parameters" },
+            new() { PageKey = "admin/appointment-types", PageName = "Appointment Types", Category = "Admin", Description = "Configure the appointment-type/duration-preset catalogue" },
+            new() { PageKey = "admin/email-templates", PageName = "Email Templates", Category = "Admin", Description = "Author and assign email templates to system events (invite, forgot password)" },
+            new() { PageKey = "admin/search-actions", PageName = "Command Palette Actions", Category = "Admin", Description = "Manage the entries searchable from the global command palette" },
+            new() { PageKey = "admin/database-backups", PageName = "Database Backups", Category = "Admin", Description = "Configure and manage scheduled SQLite database backups" },
+
+            // Practice
+            new() { PageKey = "clinic-settings", PageName = "Clinic Settings", Category = "Practice", Description = "Configure practice-wide identity and contact information" },
+            new() { PageKey = "clinic-manager", PageName = "Clinic Manager", Category = "Practice", Description = "Manage clinic locations and which users belong to each" },
+
+            // Reports
+            new() { PageKey = "reports", PageName = "Reports Dashboard", Category = "Reports", Description = "View practice reports" },
+            new() { PageKey = "reports/financial", PageName = "Financial Reports", Category = "Reports", Description = "Revenue and billing reports" },
+            new() { PageKey = "reports/clinical", PageName = "Clinical Reports", Category = "Reports", Description = "Client and appointment analytics" },
+        };
+    }
+}

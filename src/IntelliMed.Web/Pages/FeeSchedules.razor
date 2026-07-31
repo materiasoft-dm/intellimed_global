@@ -1,0 +1,379 @@
+@page "/fee-schedules"
+@layout MainLayout
+@using IntelliMed.Core.DTOs
+@using IntelliMed.Web.Services
+@inject IBillingItemService BillingItemService
+@inject IFeeScheduleService FeeScheduleService
+
+<PageTitle>Fee Schedules - IntelliMed</PageTitle>
+
+<h4 class="mb-4">Fee Schedules</h4>
+<p class="text-muted small">Manage the practice's billing item catalog and optional named price lists that override catalog prices.</p>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <strong>Billing Item Catalog</strong>
+                <button class="btn btn-sm btn-primary" @onclick="OpenNewItem"><i class="bi bi-plus-lg"></i> New Item</button>
+            </div>
+            <div class="card-body py-2">
+                @if (_items.Count == 0)
+                {
+                    <div class="text-muted small">No billing items yet.</div>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Description</th>
+                                <th class="text-end">Fee</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var i in _items)
+                            {
+                                <tr>
+                                    <td><a href="javascript:void(0)" class="link-primary" @onclick="() => OpenEditItem(i)">@i.Code</a></td>
+                                    <td>@i.Description</td>
+                                    <td class="text-end">@i.Fee.ToString("C")</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ArchiveItemAsync(i)">Archive</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <strong>Fee Schedules</strong>
+                <button class="btn btn-sm btn-primary" @onclick="OpenNewSchedule"><i class="bi bi-plus-lg"></i> New Schedule</button>
+            </div>
+            <div class="card-body py-2">
+                @if (_schedules.Count == 0)
+                {
+                    <div class="text-muted small">No fee schedules yet. Billing items use their catalog fee unless a schedule overrides it.</div>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Description</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in _schedules)
+                            {
+                                <tr>
+                                    <td><a href="javascript:void(0)" class="link-primary" @onclick="() => OpenEditSchedule(s)">@s.Code</a></td>
+                                    <td>@s.Description</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenItemsAsync(s)">Prices</button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ArchiveScheduleAsync(s)">Archive</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_showItemModal)
+{
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.4);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title">@(_editingItemId.HasValue ? "Edit" : "New") Billing Item</h6>
+                    <button type="button" class="btn-close" @onclick="@(() => _showItemModal = false)"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small mb-0">Code</label>
+                        <input class="form-control form-control-sm" @bind="_itemForm.Code" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-0">Description</label>
+                        <input class="form-control form-control-sm" @bind="_itemForm.Description" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-0">Fee</label>
+                        <input type="number" step="0.01" min="0" class="form-control form-control-sm" @bind="_itemForm.Fee" />
+                    </div>
+                    @if (_editingItemId.HasValue)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chkItemActive" @bind="_itemForm.IsActive" />
+                            <label class="form-check-label small" for="chkItemActive">Active</label>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" @onclick="@(() => _showItemModal = false)">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary" @onclick="SaveItemAsync">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showScheduleModal)
+{
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.4);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title">@(_editingScheduleId.HasValue ? "Edit" : "New") Fee Schedule</h6>
+                    <button type="button" class="btn-close" @onclick="@(() => _showScheduleModal = false)"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small mb-0">Code</label>
+                        <input class="form-control form-control-sm" @bind="_scheduleForm.Code" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-0">Description</label>
+                        <input class="form-control form-control-sm" @bind="_scheduleForm.Description" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-0">Note</label>
+                        <textarea class="form-control form-control-sm" rows="2" @bind="_scheduleForm.Note"></textarea>
+                    </div>
+                    @if (_editingScheduleId.HasValue)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chkScheduleArchived" @bind="_scheduleForm.IsArchived" />
+                            <label class="form-check-label small" for="chkScheduleArchived">Archived</label>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" @onclick="@(() => _showScheduleModal = false)">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary" @onclick="SaveScheduleAsync">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showItemsModal && _activeSchedule != null)
+{
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.4);">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title">@_activeSchedule.Code — Prices</h6>
+                    <button type="button" class="btn-close" @onclick="@(() => _showItemsModal = false)"></button>
+                </div>
+                <div class="modal-body">
+                    @if (_scheduleItems.Count > 0)
+                    {
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Fee</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var si in _scheduleItems)
+                                {
+                                    <tr>
+                                        <td>@si.Code</td>
+                                        <td>@si.Description</td>
+                                        <td class="text-end">@si.Fee.ToString("C")</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveScheduleItemAsync(si)">Remove</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-muted small mb-3">No price overrides yet — this schedule falls back to catalog fees.</div>
+                    }
+
+                    <hr />
+                    <div class="row g-2 align-items-end">
+                        <div class="col-5">
+                            <label class="form-label small mb-0">Billing Item</label>
+                            <select class="form-select form-select-sm" @bind="_newScheduleItemBillingItemId">
+                                <option value="0">Select an item…</option>
+                                @foreach (var i in _items)
+                                {
+                                    <option value="@i.Id">@i.Code — @i.Description</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small mb-0">Fee</label>
+                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" @bind="_newScheduleItemFee" />
+                        </div>
+                        <div class="col-3">
+                            <button class="btn btn-sm btn-primary w-100" @onclick="AddScheduleItemAsync">Add</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" @onclick="@(() => _showItemsModal = false)">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<BillingItemDto> _items = new();
+    private List<FeeScheduleDto> _schedules = new();
+    private List<FeeScheduleItemDto> _scheduleItems = new();
+
+    private bool _showItemModal;
+    private int? _editingItemId;
+    private UpdateBillingItemDto _itemForm = new();
+
+    private bool _showScheduleModal;
+    private int? _editingScheduleId;
+    private UpdateFeeScheduleDto _scheduleForm = new();
+
+    private bool _showItemsModal;
+    private FeeScheduleDto? _activeSchedule;
+    private int _newScheduleItemBillingItemId;
+    private decimal _newScheduleItemFee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItemsAsync();
+        await LoadSchedulesAsync();
+    }
+
+    private async Task LoadItemsAsync() => _items = await BillingItemService.GetAllActiveAsync();
+    private async Task LoadSchedulesAsync() => _schedules = await FeeScheduleService.GetAllActiveAsync();
+
+    private void OpenNewItem()
+    {
+        _editingItemId = null;
+        _itemForm = new UpdateBillingItemDto { IsActive = true };
+        _showItemModal = true;
+    }
+
+    private void OpenEditItem(BillingItemDto i)
+    {
+        _editingItemId = i.Id;
+        _itemForm = new UpdateBillingItemDto { Code = i.Code, Description = i.Description, Fee = i.Fee, IsActive = i.IsActive };
+        _showItemModal = true;
+    }
+
+    private async Task SaveItemAsync()
+    {
+        if (_editingItemId.HasValue)
+        {
+            await BillingItemService.UpdateAsync(_editingItemId.Value, _itemForm);
+        }
+        else
+        {
+            await BillingItemService.CreateAsync(new CreateBillingItemDto
+            {
+                Code = _itemForm.Code,
+                Description = _itemForm.Description,
+                Fee = _itemForm.Fee
+            });
+        }
+        _showItemModal = false;
+        await LoadItemsAsync();
+    }
+
+    private async Task ArchiveItemAsync(BillingItemDto i)
+    {
+        await BillingItemService.ArchiveAsync(i.Id);
+        await LoadItemsAsync();
+    }
+
+    private void OpenNewSchedule()
+    {
+        _editingScheduleId = null;
+        _scheduleForm = new UpdateFeeScheduleDto();
+        _showScheduleModal = true;
+    }
+
+    private void OpenEditSchedule(FeeScheduleDto s)
+    {
+        _editingScheduleId = s.Id;
+        _scheduleForm = new UpdateFeeScheduleDto { Code = s.Code, Description = s.Description, Note = s.Note, IsArchived = s.IsArchived };
+        _showScheduleModal = true;
+    }
+
+    private async Task SaveScheduleAsync()
+    {
+        if (_editingScheduleId.HasValue)
+        {
+            await FeeScheduleService.UpdateAsync(_editingScheduleId.Value, _scheduleForm);
+        }
+        else
+        {
+            await FeeScheduleService.CreateAsync(new CreateFeeScheduleDto
+            {
+                Code = _scheduleForm.Code,
+                Description = _scheduleForm.Description,
+                Note = _scheduleForm.Note
+            });
+        }
+        _showScheduleModal = false;
+        await LoadSchedulesAsync();
+    }
+
+    private async Task ArchiveScheduleAsync(FeeScheduleDto s)
+    {
+        await FeeScheduleService.ArchiveAsync(s.Id);
+        await LoadSchedulesAsync();
+    }
+
+    private async Task OpenItemsAsync(FeeScheduleDto s)
+    {
+        _activeSchedule = s;
+        _newScheduleItemBillingItemId = 0;
+        _newScheduleItemFee = 0;
+        _scheduleItems = await FeeScheduleService.GetItemsAsync(s.Id);
+        _showItemsModal = true;
+    }
+
+    private async Task AddScheduleItemAsync()
+    {
+        if (_activeSchedule == null || _newScheduleItemBillingItemId <= 0) return;
+
+        await FeeScheduleService.SaveItemAsync(_activeSchedule.Id, new SaveFeeScheduleItemDto
+        {
+            BillingItemId = _newScheduleItemBillingItemId,
+            Fee = _newScheduleItemFee
+        });
+        _scheduleItems = await FeeScheduleService.GetItemsAsync(_activeSchedule.Id);
+        _newScheduleItemBillingItemId = 0;
+        _newScheduleItemFee = 0;
+    }
+
+    private async Task RemoveScheduleItemAsync(FeeScheduleItemDto si)
+    {
+        if (_activeSchedule == null) return;
+
+        await FeeScheduleService.RemoveItemAsync(_activeSchedule.Id, si.BillingItemId);
+        _scheduleItems = await FeeScheduleService.GetItemsAsync(_activeSchedule.Id);
+    }
+}

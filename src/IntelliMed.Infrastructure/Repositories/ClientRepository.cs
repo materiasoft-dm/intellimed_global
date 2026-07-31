@@ -1,0 +1,257 @@
+using IntelliMed.Core.DTOs;
+using IntelliMed.Core.Entities;
+using IntelliMed.Core.Interfaces;
+using IntelliMed.Infrastructure.Data;
+using IntelliMed.Infrastructure.Mappers;
+using Microsoft.EntityFrameworkCore;
+
+namespace IntelliMed.Infrastructure.Repositories;
+
+public class ClientRepository : Repository<Client>, IClientRepository
+{
+    public ClientRepository(AppDbContext context) : base(context)
+    {
+    }
+
+    public async Task<ClientDto?> GetByIdAsync(int id)
+    {
+        var client = await _dbSet.FirstOrDefaultAsync(p => p.Id == id);
+        return client == null ? null : EntityMapper.ToDto(client);
+    }
+
+    public async Task<IEnumerable<ClientDto>> SearchAsync(ClientSearchDto search)
+    {
+        var query = BuildSearchQuery(search);
+        var clients = await query.ToListAsync();
+        return clients.Select(EntityMapper.ToDto);
+    }
+
+    public async Task<(IEnumerable<ClientDto> Items, int TotalCount)> GetPagedAsync(ClientSearchDto search)
+    {
+        var query = BuildSearchQuery(search);
+        var totalCount = await query.CountAsync();
+
+        var clients = await query
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
+            .Skip((search.Page - 1) * search.PageSize)
+            .Take(search.PageSize)
+            .ToListAsync();
+
+        return (clients.Select(EntityMapper.ToDto), totalCount);
+    }
+
+    public async Task<int> CreateAsync(CreateClientDto dto)
+    {
+        var client = EntityMapper.ToEntity(dto);
+        await _dbSet.AddAsync(client);
+        await _context.SaveChangesAsync();
+        return client.Id;
+    }
+
+    public async Task UpdateAsync(int id, UpdateClientDto dto)
+    {
+        var client = await _dbSet.FindAsync(id);
+        if (client == null)
+            throw new InvalidOperationException($"Client with ID {id} not found");
+
+        EntityMapper.UpdateEntity(client, dto);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task ArchiveAsync(int id)
+    {
+        var client = await _dbSet.FindAsync(id);
+        if (client == null)
+            throw new InvalidOperationException($"Client with ID {id} not found");
+
+        client.IsActive = false;
+        client.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+    }
+
+    private IQueryable<Client> BuildSearchQuery(ClientSearchDto search)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (search.ClinicId.HasValue)
+        {
+            query = query.Where(p => p.ClinicId == search.ClinicId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search.Query))
+        {
+            var searchTerm = search.Query.ToLower();
+            query = query.Where(p =>
+                p.FirstName.ToLower().Contains(searchTerm) ||
+                p.LastName.ToLower().Contains(searchTerm) ||
+                (p.Email != null && p.Email.ToLower().Contains(searchTerm)) ||
+                (p.Phone != null && p.Phone.Contains(searchTerm)));
+        }
+
+        // Basic
+        if (!string.IsNullOrWhiteSpace(search.Surname))
+        {
+            var term = search.Surname.ToLower();
+            query = query.Where(p => p.LastName.ToLower().Contains(term));
+        }
+        if (!string.IsNullOrWhiteSpace(search.GivenName))
+        {
+            var term = search.GivenName.ToLower();
+            query = query.Where(p => p.FirstName.ToLower().Contains(term));
+        }
+        if (search.Gender.HasValue)
+        {
+            query = query.Where(p => p.Gender == search.Gender.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(search.FileNumber))
+        {
+            query = query.Where(p => p.FileNumber != null && p.FileNumber.Contains(search.FileNumber));
+        }
+        if (!string.IsNullOrWhiteSpace(search.LifeCardNum))
+        {
+            query = query.Where(p => p.LifeCardNum != null && p.LifeCardNum.Contains(search.LifeCardNum));
+        }
+        if (search.DobFrom.HasValue)
+        {
+            query = query.Where(p => p.DateOfBirth >= search.DobFrom.Value);
+        }
+        if (search.DobTo.HasValue)
+        {
+            query = query.Where(p => p.DateOfBirth <= search.DobTo.Value);
+        }
+
+        // Residential address
+        if (!string.IsNullOrWhiteSpace(search.Address))
+        {
+            var term = search.Address.ToLower();
+            query = query.Where(p => p.Address.ToLower().Contains(term));
+        }
+        if (!string.IsNullOrWhiteSpace(search.City))
+        {
+            var term = search.City.ToLower();
+            query = query.Where(p => p.City.ToLower().Contains(term));
+        }
+        if (!string.IsNullOrWhiteSpace(search.PostalCode))
+        {
+            query = query.Where(p => p.PostalCode.Contains(search.PostalCode));
+        }
+        if (!string.IsNullOrWhiteSpace(search.State))
+        {
+            query = query.Where(p => p.State.ToLower() == search.State.ToLower());
+        }
+
+        // Postal address — matched against ClientAddress rows of type Postal
+        if (!string.IsNullOrWhiteSpace(search.PostalAddress))
+        {
+            var term = search.PostalAddress.ToLower();
+            query = query.Where(p => _context.ClientAddresses.Any(a =>
+                a.ClientId == p.Id && a.AddressType == ClientAddressType.Postal &&
+                a.AddressLine1.ToLower().Contains(term)));
+        }
+        if (!string.IsNullOrWhiteSpace(search.PostalCity))
+        {
+            var term = search.PostalCity.ToLower();
+            query = query.Where(p => _context.ClientAddresses.Any(a =>
+                a.ClientId == p.Id && a.AddressType == ClientAddressType.Postal &&
+                a.City.ToLower().Contains(term)));
+        }
+        if (!string.IsNullOrWhiteSpace(search.PostalPostalCode))
+        {
+            query = query.Where(p => _context.ClientAddresses.Any(a =>
+                a.ClientId == p.Id && a.AddressType == ClientAddressType.Postal &&
+                a.PostalCode.Contains(search.PostalPostalCode)));
+        }
+        if (!string.IsNullOrWhiteSpace(search.PostalState))
+        {
+            var term = search.PostalState.ToLower();
+            query = query.Where(p => _context.ClientAddresses.Any(a =>
+                a.ClientId == p.Id && a.AddressType == ClientAddressType.Postal &&
+                a.State.ToLower() == term));
+        }
+
+        // Contact
+        if (!string.IsNullOrWhiteSpace(search.HomePhone))
+        {
+            query = query.Where(p => p.Phone.Contains(search.HomePhone));
+        }
+        if (!string.IsNullOrWhiteSpace(search.BusinessHoursPhone))
+        {
+            query = query.Where(p => p.BusinessHoursPhone != null && p.BusinessHoursPhone.Contains(search.BusinessHoursPhone));
+        }
+        if (!string.IsNullOrWhiteSpace(search.MobilePhone))
+        {
+            query = query.Where(p => p.MobilePhone != null && p.MobilePhone.Contains(search.MobilePhone));
+        }
+        if (!string.IsNullOrWhiteSpace(search.Email))
+        {
+            var term = search.Email.ToLower();
+            query = query.Where(p => p.Email.ToLower().Contains(term));
+        }
+
+        // Date ranges
+        if (search.CreatedFrom.HasValue)
+        {
+            query = query.Where(p => p.CreatedAt >= search.CreatedFrom.Value);
+        }
+        if (search.CreatedTo.HasValue)
+        {
+            query = query.Where(p => p.CreatedAt <= search.CreatedTo.Value);
+        }
+
+        // Misc
+        if (!string.IsNullOrWhiteSpace(search.Warnings))
+        {
+            var term = search.Warnings.ToLower();
+            query = query.Where(p => p.Warnings != null && p.Warnings.ToLower().Contains(term));
+        }
+        if (!string.IsNullOrWhiteSpace(search.Notes))
+        {
+            var term = search.Notes.ToLower();
+            query = query.Where(p => p.Notes != null && p.Notes.ToLower().Contains(term));
+        }
+        if (!string.IsNullOrWhiteSpace(search.ReferredBy))
+        {
+            var term = search.ReferredBy.ToLower();
+            query = query.Where(p => _context.ClientReferrals.Any(r =>
+                r.ClientId == p.Id && r.ReferringProviderName.ToLower().Contains(term)));
+        }
+        if (search.ClientType.HasValue)
+        {
+            query = query.Where(p => p.Type == search.ClientType.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(search.UrNumber))
+        {
+            query = query.Where(p => p.UrNumber != null && p.UrNumber.Contains(search.UrNumber));
+        }
+
+        // Flags
+        if (search.Deceased.HasValue)
+        {
+            query = query.Where(p => p.Deceased == search.Deceased.Value);
+        }
+        if (!search.IncludeArchived)
+        {
+            query = query.Where(p => p.IsActive);
+        }
+        if (search.AcceptEmail.HasValue)
+        {
+            query = query.Where(p => p.AcceptEmail == search.AcceptEmail.Value);
+        }
+        if (search.AcceptSms.HasValue)
+        {
+            query = query.Where(p => p.AcceptSms == search.AcceptSms.Value);
+        }
+        if (search.AcceptSmsMarketing.HasValue)
+        {
+            query = query.Where(p => p.AcceptSmsMarketing == search.AcceptSmsMarketing.Value);
+        }
+
+        if (search.IsActive.HasValue)
+        {
+            query = query.Where(p => p.IsActive == search.IsActive.Value);
+        }
+
+        return query;
+    }
+}

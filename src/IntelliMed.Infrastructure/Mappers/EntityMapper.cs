@@ -1,0 +1,600 @@
+using IntelliMed.Core.DTOs;
+using IntelliMed.Core.Entities;
+
+namespace IntelliMed.Infrastructure.Mappers;
+
+public static class EntityMapper
+{
+    // Client mappings
+    public static ClientDto ToDto(Client entity) => new()
+    {
+        Id = entity.Id,
+        ClinicId = entity.ClinicId,
+        Type = entity.Type,
+        FirstName = entity.FirstName,
+        LastName = entity.LastName,
+        MiddleName = entity.MiddleName,
+        PreferredName = entity.PreferredName,
+        MaidenName = entity.MaidenName,
+        Title = entity.Title,
+        Gender = entity.Gender,
+        DateOfBirth = entity.DateOfBirth,
+        DobAccuracy = entity.DobAccuracy,
+        PlaceOfBirth = entity.PlaceOfBirth,
+        InterpreterRequired = entity.InterpreterRequired,
+        InterpreterLanguage = entity.InterpreterLanguage,
+        MaritalStatus = entity.MaritalStatus,
+        Ethnicity = entity.Ethnicity,
+        Address = entity.Address,
+        City = entity.City,
+        State = entity.State,
+        PostalCode = entity.PostalCode,
+        Email = entity.Email,
+        Phone = entity.Phone,
+        BusinessHoursPhone = entity.BusinessHoursPhone,
+        MobilePhone = entity.MobilePhone,
+        FaxNumber = entity.FaxNumber,
+        AcceptSms = entity.AcceptSms,
+        AcceptEmail = entity.AcceptEmail,
+        AcceptOnlineAppointments = entity.AcceptOnlineAppointments,
+        AcceptSmsMarketing = entity.AcceptSmsMarketing,
+        Notes = entity.Notes,
+        Warnings = entity.Warnings,
+        NextOfKinClientId = entity.NextOfKinClientId,
+        NextOfKinName = entity.NextOfKinName,
+        NextOfKinPhone = entity.NextOfKinPhone,
+        EmergencyContactClientId = entity.EmergencyContactClientId,
+        EmergencyContactName = entity.EmergencyContactName,
+        EmergencyContactPhone = entity.EmergencyContactPhone,
+        SameAsNextOfKin = entity.SameAsNextOfKin,
+        FileNumber = entity.FileNumber,
+        UrNumber = entity.UrNumber,
+        Deceased = entity.Deceased,
+        ProviderId = entity.ProviderId,
+        LastSeenDate = entity.LastSeenDate,
+        LifeCardNum = entity.LifeCardNum,
+        IsActive = entity.IsActive,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt
+    };
+
+    public static Client ToEntity(CreateClientDto dto) => new()
+    {
+        ClinicId = dto.ClinicId,
+        Type = dto.Type,
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        MiddleName = dto.MiddleName,
+        PreferredName = dto.PreferredName,
+        MaidenName = dto.MaidenName,
+        Title = dto.Title,
+        Gender = dto.Gender,
+        DateOfBirth = dto.DateOfBirth,
+        DobAccuracy = dto.DobAccuracy,
+        PlaceOfBirth = dto.PlaceOfBirth,
+        InterpreterRequired = dto.InterpreterRequired,
+        InterpreterLanguage = dto.InterpreterLanguage,
+        MaritalStatus = dto.MaritalStatus,
+        Ethnicity = dto.Ethnicity,
+        Address = dto.Address,
+        City = dto.City,
+        State = dto.State,
+        PostalCode = dto.PostalCode,
+        Email = dto.Email,
+        Phone = dto.Phone,
+        BusinessHoursPhone = dto.BusinessHoursPhone,
+        MobilePhone = dto.MobilePhone,
+        FaxNumber = dto.FaxNumber,
+        AcceptSms = dto.AcceptSms,
+        AcceptEmail = dto.AcceptEmail,
+        AcceptOnlineAppointments = dto.AcceptOnlineAppointments,
+        AcceptSmsMarketing = dto.AcceptSmsMarketing,
+        Notes = dto.Notes,
+        Warnings = dto.Warnings,
+        NextOfKinClientId = dto.NextOfKinClientId,
+        NextOfKinName = dto.NextOfKinName,
+        NextOfKinPhone = dto.NextOfKinPhone,
+        EmergencyContactClientId = dto.EmergencyContactClientId,
+        EmergencyContactName = dto.EmergencyContactName,
+        EmergencyContactPhone = dto.EmergencyContactPhone,
+        SameAsNextOfKin = dto.SameAsNextOfKin,
+        FileNumber = dto.FileNumber,
+        UrNumber = dto.UrNumber,
+        Deceased = dto.Deceased,
+        ProviderId = dto.ProviderId,
+        LastSeenDate = dto.LastSeenDate,
+        LifeCardNum = dto.LifeCardNum,
+        IsActive = true,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    public static void UpdateEntity(Client entity, UpdateClientDto dto)
+    {
+        entity.Type = dto.Type;
+        entity.FirstName = dto.FirstName;
+        entity.LastName = dto.LastName;
+        entity.MiddleName = dto.MiddleName;
+        entity.PreferredName = dto.PreferredName;
+        entity.MaidenName = dto.MaidenName;
+        entity.Title = dto.Title;
+        entity.Gender = dto.Gender;
+        entity.DateOfBirth = dto.DateOfBirth;
+        entity.DobAccuracy = dto.DobAccuracy;
+        entity.PlaceOfBirth = dto.PlaceOfBirth;
+        entity.InterpreterRequired = dto.InterpreterRequired;
+        entity.InterpreterLanguage = dto.InterpreterLanguage;
+        entity.MaritalStatus = dto.MaritalStatus;
+        entity.Ethnicity = dto.Ethnicity;
+        entity.Address = dto.Address;
+        entity.City = dto.City;
+        entity.State = dto.State;
+        entity.PostalCode = dto.PostalCode;
+        entity.Email = dto.Email;
+        entity.Phone = dto.Phone;
+        entity.BusinessHoursPhone = dto.BusinessHoursPhone;
+        entity.MobilePhone = dto.MobilePhone;
+        entity.FaxNumber = dto.FaxNumber;
+        entity.AcceptSms = dto.AcceptSms;
+        entity.AcceptEmail = dto.AcceptEmail;
+        entity.AcceptOnlineAppointments = dto.AcceptOnlineAppointments;
+        entity.AcceptSmsMarketing = dto.AcceptSmsMarketing;
+        entity.Notes = dto.Notes;
+        entity.Warnings = dto.Warnings;
+        entity.NextOfKinClientId = dto.NextOfKinClientId;
+        entity.NextOfKinName = dto.NextOfKinName;
+        entity.NextOfKinPhone = dto.NextOfKinPhone;
+        entity.EmergencyContactClientId = dto.EmergencyContactClientId;
+        entity.EmergencyContactName = dto.EmergencyContactName;
+        entity.EmergencyContactPhone = dto.EmergencyContactPhone;
+        entity.SameAsNextOfKin = dto.SameAsNextOfKin;
+        entity.FileNumber = dto.FileNumber;
+        entity.UrNumber = dto.UrNumber;
+        entity.Deceased = dto.Deceased;
+        entity.ProviderId = dto.ProviderId;
+        entity.LastSeenDate = dto.LastSeenDate;
+        entity.LifeCardNum = dto.LifeCardNum;
+        entity.IsActive = dto.IsActive;
+        entity.UpdatedAt = DateTime.UtcNow;
+    }
+
+    // ClientReferral mappings
+    public static ClientReferralDto ToDto(ClientReferral entity) => new()
+    {
+        Id = entity.Id,
+        ClientId = entity.ClientId,
+        ReferralDate = entity.ReferralDate,
+        ReferralPeriod = entity.ReferralPeriod,
+        IsDefault = entity.IsDefault,
+        IsGP = entity.IsGP,
+        ReferringProviderName = entity.ReferringProviderName,
+        ReferringProviderNumber = entity.ReferringProviderNumber,
+        FirstVisitDate = entity.FirstVisitDate,
+        Note = entity.Note,
+        IsArchived = entity.IsArchived,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt
+    };
+
+    public static ClientReferral ToEntity(CreateClientReferralDto dto) => new()
+    {
+        ClientId = dto.ClientId,
+        ReferralDate = dto.ReferralDate,
+        ReferralPeriod = dto.ReferralPeriod,
+        IsDefault = dto.IsDefault,
+        IsGP = dto.IsGP,
+        ReferringProviderName = dto.ReferringProviderName,
+        ReferringProviderNumber = dto.ReferringProviderNumber,
+        FirstVisitDate = dto.FirstVisitDate,
+        Note = dto.Note,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    public static void UpdateEntity(ClientReferral entity, UpdateClientReferralDto dto)
+    {
+        entity.ReferralDate = dto.ReferralDate;
+        entity.ReferralPeriod = dto.ReferralPeriod;
+        entity.IsDefault = dto.IsDefault;
+        entity.IsGP = dto.IsGP;
+        entity.ReferringProviderName = dto.ReferringProviderName;
+        entity.ReferringProviderNumber = dto.ReferringProviderNumber;
+        entity.FirstVisitDate = dto.FirstVisitDate;
+        entity.Note = dto.Note;
+        entity.IsArchived = dto.IsArchived;
+        entity.UpdatedAt = DateTime.UtcNow;
+    }
+
+    // ClientAddress mappings
+    public static ClientAddressDto ToDto(ClientAddress entity) => new()
+    {
+        Id = entity.Id,
+        ClientId = entity.ClientId,
+        AddressType = entity.AddressType,
+        AddressLine1 = entity.AddressLine1,
+        AddressLine2 = entity.AddressLine2,
+        City = entity.City,
+        PostalCode = entity.PostalCode,
+        State = entity.State,
+        AddressSubType = entity.AddressSubType,
+        Community = entity.Community
+    };
+
+    public static ClientAddress ToEntity(CreateClientAddressDto dto) => new()
+    {
+        ClientId = dto.ClientId,
+        AddressType = dto.AddressType,
+        AddressLine1 = dto.AddressLine1,
+        AddressLine2 = dto.AddressLine2,
+        City = dto.City,
+        PostalCode = dto.PostalCode,
+        State = dto.State,
+        AddressSubType = dto.AddressSubType,
+        Community = dto.Community
+    };
+
+    public static void UpdateEntity(ClientAddress entity, UpdateClientAddressDto dto)
+    {
+        entity.AddressType = dto.AddressType;
+        entity.AddressLine1 = dto.AddressLine1;
+        entity.AddressLine2 = dto.AddressLine2;
+        entity.City = dto.City;
+        entity.PostalCode = dto.PostalCode;
+        entity.State = dto.State;
+        entity.AddressSubType = dto.AddressSubType;
+        entity.Community = dto.Community;
+    }
+
+    // ClientOccupation mappings
+    public static ClientOccupationDto ToDto(ClientOccupation entity) => new()
+    {
+        Id = entity.Id,
+        ClientId = entity.ClientId,
+        Occupation = entity.Occupation,
+        Employer = entity.Employer,
+        StartedYear = entity.StartedYear,
+        StoppedYear = entity.StoppedYear,
+        HasAsbestos = entity.HasAsbestos,
+        HasDust = entity.HasDust,
+        HasRadiation = entity.HasRadiation,
+        HasAnimals = entity.HasAnimals,
+        Comment = entity.Comment,
+        IsArchived = entity.IsArchived,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt
+    };
+
+    public static ClientOccupation ToEntity(CreateClientOccupationDto dto) => new()
+    {
+        ClientId = dto.ClientId,
+        Occupation = dto.Occupation,
+        Employer = dto.Employer,
+        StartedYear = dto.StartedYear,
+        StoppedYear = dto.StoppedYear,
+        HasAsbestos = dto.HasAsbestos,
+        HasDust = dto.HasDust,
+        HasRadiation = dto.HasRadiation,
+        HasAnimals = dto.HasAnimals,
+        Comment = dto.Comment,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    public static void UpdateEntity(ClientOccupation entity, UpdateClientOccupationDto dto)
+    {
+        entity.Occupation = dto.Occupation;
+        entity.Employer = dto.Employer;
+        entity.StartedYear = dto.StartedYear;
+        entity.StoppedYear = dto.StoppedYear;
+        entity.HasAsbestos = dto.HasAsbestos;
+        entity.HasDust = dto.HasDust;
+        entity.HasRadiation = dto.HasRadiation;
+        entity.HasAnimals = dto.HasAnimals;
+        entity.Comment = dto.Comment;
+        entity.IsArchived = dto.IsArchived;
+        entity.UpdatedAt = DateTime.UtcNow;
+    }
+
+    // UserDefinedFieldType mappings
+    public static UserDefinedFieldTypeDto ToDto(UserDefinedFieldType entity) => new()
+    {
+        Id = entity.Id,
+        Name = entity.Name,
+        FieldType = entity.FieldType,
+        DefaultValue = entity.DefaultValue,
+        DisplayOrder = entity.DisplayOrder,
+        IsActive = entity.IsActive
+    };
+
+    public static UserDefinedFieldType ToEntity(CreateUserDefinedFieldTypeDto dto) => new()
+    {
+        Name = dto.Name,
+        FieldType = dto.FieldType,
+        DefaultValue = dto.DefaultValue,
+        DisplayOrder = dto.DisplayOrder,
+        IsActive = true
+    };
+
+    public static void UpdateEntity(UserDefinedFieldType entity, UpdateUserDefinedFieldTypeDto dto)
+    {
+        entity.Name = dto.Name;
+        entity.FieldType = dto.FieldType;
+        entity.DefaultValue = dto.DefaultValue;
+        entity.DisplayOrder = dto.DisplayOrder;
+        entity.IsActive = dto.IsActive;
+    }
+
+    // Practitioner mappings
+    public static PractitionerDto ToDto(Practitioner entity) => new()
+    {
+        Id = entity.Id,
+        FirstName = entity.FirstName,
+        LastName = entity.LastName,
+        Title = entity.Title,
+        Profession = entity.Profession,
+        RegistrationNumber = entity.RegistrationNumber,
+        Email = entity.Email,
+        Phone = entity.Phone,
+        IsActive = entity.IsActive,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt
+    };
+
+    public static Practitioner ToEntity(CreatePractitionerDto dto) => new()
+    {
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        Title = dto.Title,
+        Profession = dto.Profession,
+        RegistrationNumber = dto.RegistrationNumber,
+        Email = dto.Email,
+        Phone = dto.Phone,
+        IsActive = true,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    public static void UpdateEntity(Practitioner entity, UpdatePractitionerDto dto)
+    {
+        entity.FirstName = dto.FirstName;
+        entity.LastName = dto.LastName;
+        entity.Title = dto.Title;
+        entity.Profession = dto.Profession;
+        entity.RegistrationNumber = dto.RegistrationNumber;
+        entity.Email = dto.Email;
+        entity.Phone = dto.Phone;
+        entity.IsActive = dto.IsActive;
+        entity.UpdatedAt = DateTime.UtcNow;
+    }
+
+    // Appointment mappings
+    public static AppointmentDto ToDto(Appointment entity) => new()
+    {
+        Id = entity.Id,
+        ClientId = entity.ClientId,
+        ClientName = entity.Client != null ? $"{entity.Client.FirstName} {entity.Client.LastName}" : string.Empty,
+        PractitionerId = entity.PractitionerId,
+        PractitionerName = entity.Practitioner != null ? $"{entity.Practitioner.Title} {entity.Practitioner.FirstName} {entity.Practitioner.LastName}".Trim() : string.Empty,
+        AppointmentDate = entity.AppointmentDate,
+        StartTime = entity.StartTime,
+        EndTime = entity.EndTime,
+        Status = entity.Status,
+        Type = entity.Type,
+        Notes = entity.Notes,
+        ArrivedAt = entity.ArrivedAt,
+        SeenAt = entity.SeenAt,
+        CompletedAt = entity.CompletedAt,
+        RecurrenceSeriesId = entity.RecurrenceSeriesId,
+        AppointmentTypeSettingId = entity.AppointmentTypeSettingId,
+        AppointmentTypeSettingName = entity.AppointmentTypeSetting?.Name,
+        AppointmentTypeSettingColorHex = entity.AppointmentTypeSetting?.ColorHex,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt
+    };
+
+    public static Appointment ToEntity(CreateAppointmentDto dto) => new()
+    {
+        ClinicId = dto.ClinicId,
+        ClientId = dto.ClientId,
+        PractitionerId = dto.PractitionerId,
+        AppointmentDate = dto.AppointmentDate,
+        StartTime = dto.StartTime,
+        EndTime = dto.EndTime,
+        Type = dto.Type,
+        AppointmentTypeSettingId = dto.AppointmentTypeSettingId,
+        Notes = dto.Notes,
+        Status = AppointmentStatus.Scheduled,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    public static void UpdateEntity(Appointment entity, UpdateAppointmentDto dto)
+    {
+        entity.ClientId = dto.ClientId;
+        entity.PractitionerId = dto.PractitionerId;
+        entity.AppointmentDate = dto.AppointmentDate;
+        entity.StartTime = dto.StartTime;
+        entity.EndTime = dto.EndTime;
+        entity.Status = dto.Status;
+        entity.Type = dto.Type;
+        entity.AppointmentTypeSettingId = dto.AppointmentTypeSettingId;
+        entity.Notes = dto.Notes;
+        entity.UpdatedAt = DateTime.UtcNow;
+    }
+
+    // AppointmentTypeSetting mappings
+    public static AppointmentTypeSettingDto ToDto(AppointmentTypeSetting entity) => new()
+    {
+        Id = entity.Id,
+        ClinicId = entity.ClinicId,
+        Name = entity.Name,
+        DefaultDurationMinutes = entity.DefaultDurationMinutes,
+        ColorHex = entity.ColorHex,
+        IsActive = entity.IsActive,
+        SortOrder = entity.SortOrder
+    };
+
+    public static AppointmentTypeSetting ToEntity(CreateAppointmentTypeSettingDto dto) => new()
+    {
+        ClinicId = dto.ClinicId,
+        Name = dto.Name,
+        DefaultDurationMinutes = dto.DefaultDurationMinutes,
+        ColorHex = dto.ColorHex,
+        SortOrder = dto.SortOrder,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    public static void UpdateEntity(AppointmentTypeSetting entity, UpdateAppointmentTypeSettingDto dto)
+    {
+        entity.Name = dto.Name;
+        entity.DefaultDurationMinutes = dto.DefaultDurationMinutes;
+        entity.ColorHex = dto.ColorHex;
+        entity.IsActive = dto.IsActive;
+        entity.SortOrder = dto.SortOrder;
+    }
+
+    // Invoice mappings
+    public static InvoiceDto ToDto(Invoice entity) => new()
+    {
+        Id = entity.Id,
+        ClientId = entity.ClientId,
+        ClientName = entity.Client != null ? $"{entity.Client.FirstName} {entity.Client.LastName}" : string.Empty,
+        AppointmentId = entity.AppointmentId,
+        PractitionerId = entity.PractitionerId,
+        PractitionerName = entity.Practitioner != null ? $"{entity.Practitioner.Title} {entity.Practitioner.FirstName} {entity.Practitioner.LastName}".Trim() : null,
+        InvoiceNumber = entity.InvoiceNumber,
+        InvoiceDate = entity.InvoiceDate,
+        DueDate = entity.DueDate,
+        Status = entity.Status,
+        TotalAmount = entity.TotalAmount,
+        AmountPaid = entity.AmountPaid,
+        Notes = entity.Notes,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt,
+        Items = entity.Items.Select(ToDto).ToList(),
+        Payments = entity.Payments.Select(ToDto).ToList()
+    };
+
+    public static InvoiceItemDto ToDto(InvoiceItem entity) => new()
+    {
+        Id = entity.Id,
+        InvoiceId = entity.InvoiceId,
+        BillingItemId = entity.BillingItemId,
+        FeeScheduleId = entity.FeeScheduleId,
+        BillingItemCode = entity.BillingItem?.Code,
+        Description = entity.Description,
+        ServiceDate = entity.ServiceDate,
+        Quantity = entity.Quantity,
+        UnitPrice = entity.UnitPrice,
+        Discount = entity.Discount,
+        TaxAmount = entity.TaxAmount,
+        Note = entity.Note
+    };
+
+    public static PaymentDto ToDto(Payment entity) => new()
+    {
+        Id = entity.Id,
+        InvoiceId = entity.InvoiceId,
+        InvoiceNumber = entity.Invoice?.InvoiceNumber,
+        ClientName = entity.Invoice?.Client != null ? $"{entity.Invoice.Client.FirstName} {entity.Invoice.Client.LastName}" : null,
+        Amount = entity.Amount,
+        Method = entity.Method,
+        Reference = entity.Reference,
+        PaymentDate = entity.PaymentDate
+    };
+
+    public static Invoice ToEntity(CreateInvoiceDto dto, string invoiceNumber) => new()
+    {
+        ClinicId = dto.ClinicId,
+        ClientId = dto.ClientId,
+        AppointmentId = dto.AppointmentId,
+        PractitionerId = dto.PractitionerId,
+        InvoiceNumber = invoiceNumber,
+        InvoiceDate = DateTime.UtcNow,
+        DueDate = dto.DueDate,
+        Notes = dto.Notes,
+        Status = InvoiceStatus.Draft,
+        // TotalAmount is recomputed authoritatively in InvoiceRepository once items are attached.
+        TotalAmount = dto.Items.Sum(i => i.Quantity * i.UnitPrice - i.Discount + i.TaxAmount),
+        AmountPaid = 0,
+        CreatedAt = DateTime.UtcNow,
+        Items = dto.Items.Select(i => new InvoiceItem
+        {
+            BillingItemId = i.BillingItemId,
+            FeeScheduleId = i.FeeScheduleId,
+            Description = i.Description,
+            ServiceDate = i.ServiceDate,
+            Quantity = i.Quantity,
+            UnitPrice = i.UnitPrice,
+            Discount = i.Discount,
+            TaxAmount = i.TaxAmount,
+            Note = i.Note
+        }).ToList()
+    };
+
+    // BillingItem mappings
+    public static BillingItemDto ToDto(BillingItem entity) => new()
+    {
+        Id = entity.Id,
+        Code = entity.Code,
+        Description = entity.Description,
+        Fee = entity.Fee,
+        IsActive = entity.IsActive
+    };
+
+    // FeeSchedule mappings
+    public static FeeScheduleDto ToDto(FeeSchedule entity) => new()
+    {
+        Id = entity.Id,
+        Code = entity.Code,
+        Description = entity.Description,
+        Note = entity.Note,
+        IsArchived = entity.IsArchived,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt
+    };
+
+    public static Payment ToEntity(CreatePaymentDto dto) => new()
+    {
+        InvoiceId = dto.InvoiceId,
+        Amount = dto.Amount,
+        Method = dto.Method,
+        Reference = dto.Reference,
+        PaymentDate = dto.PaymentDate,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    // Notification mappings
+    public static NotificationDto ToDto(Notification entity) => new()
+    {
+        Id = entity.Id,
+        Type = entity.Type,
+        Message = entity.Message,
+        LinkUrl = entity.LinkUrl,
+        IsRead = entity.IsRead,
+        ReadAt = entity.ReadAt,
+        CreatedAt = entity.CreatedAt
+    };
+
+    public static Notification ToEntity(CreateNotificationDto dto) => new()
+    {
+        RecipientUserId = dto.RecipientUserId,
+        Type = dto.Type,
+        Message = dto.Message,
+        LinkUrl = dto.LinkUrl,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    // DatabaseBackup mappings
+    public static DatabaseBackupDto ToDto(DatabaseBackup entity) => new()
+    {
+        Id = entity.Id,
+        FileName = entity.FileName,
+        FileSizeBytes = entity.FileSizeBytes,
+        Trigger = entity.Trigger,
+        CreatedAt = entity.CreatedAt
+    };
+
+    public static DatabaseBackup ToEntity(CreateDatabaseBackupDto dto) => new()
+    {
+        FileName = dto.FileName,
+        FileSizeBytes = dto.FileSizeBytes,
+        Trigger = dto.Trigger,
+        CreatedAt = DateTime.UtcNow
+    };
+}
