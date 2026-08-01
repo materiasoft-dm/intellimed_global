@@ -110,6 +110,56 @@ public class InvoiceRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task GetByIdWithDetailsAsync_ReturnsClinicLetterheadFields()
+    {
+        // Arrange
+        var clinic = new Clinic
+        {
+            Name = "Riverside Clinic",
+            BusinessRegistrationNumber = "REG-12345",
+            Address = "1 River St",
+            City = "Springfield",
+            State = "State",
+            PostalCode = "20000",
+            Phone = "555-1234",
+            Email = "info@riverside.example"
+        };
+        _context.Clinics.Add(clinic);
+
+        var client = new Client { FirstName = "Test", LastName = "Client", Email = "test@example.com", IsActive = true };
+        _context.Clients.Add(client);
+        await _context.SaveChangesAsync();
+
+        var invoice = new Invoice
+        {
+            ClinicId = clinic.Id,
+            ClientId = client.Id,
+            InvoiceNumber = "INV-900",
+            InvoiceDate = DateTime.Today,
+            DueDate = DateTime.Today.AddDays(30),
+            Status = InvoiceStatus.Draft,
+            TotalAmount = 100.00m
+        };
+        _context.Invoices.Add(invoice);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByIdWithDetailsAsync(invoice.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.ClinicId.Should().Be(clinic.Id);
+        result.ClinicName.Should().Be("Riverside Clinic");
+        result.ClinicBusinessRegistrationNumber.Should().Be("REG-12345");
+        result.ClinicAddress.Should().Be("1 River St");
+        result.ClinicCity.Should().Be("Springfield");
+        result.ClinicState.Should().Be("State");
+        result.ClinicPostalCode.Should().Be("20000");
+        result.ClinicPhone.Should().Be("555-1234");
+        result.ClinicEmail.Should().Be("info@riverside.example");
+    }
+
+    [Fact]
     public async Task SearchAsync_WithClientIdFilter_ReturnsMatchingInvoices()
     {
         // Arrange

@@ -449,9 +449,18 @@ public static class EntityMapper
     }
 
     // Invoice mappings
-    public static InvoiceDto ToDto(Invoice entity) => new()
+    public static InvoiceDto ToDto(Invoice entity, Clinic? clinic = null) => new()
     {
         Id = entity.Id,
+        ClinicId = entity.ClinicId,
+        ClinicName = clinic?.Name,
+        ClinicBusinessRegistrationNumber = clinic?.BusinessRegistrationNumber,
+        ClinicAddress = clinic?.Address,
+        ClinicCity = clinic?.City,
+        ClinicState = clinic?.State,
+        ClinicPostalCode = clinic?.PostalCode,
+        ClinicPhone = clinic?.Phone,
+        ClinicEmail = clinic?.Email,
         ClientId = entity.ClientId,
         ClientName = entity.Client != null ? $"{entity.Client.FirstName} {entity.Client.LastName}" : string.Empty,
         AppointmentId = entity.AppointmentId,
